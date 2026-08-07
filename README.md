@@ -26,7 +26,9 @@ Remote access goes through Tailscale on the homeserver, which advertises both in
 Hosts are addressed by flake output:
 
 ```sh
-nixos-rebuild switch --flake github:kquentin/homelab#homeserver
+nixos-rebuild switch --flake github:kquentin/homelab#homeserver --refresh
 ```
 
-`system.autoUpgrade` runs the same thing nightly.
+`--refresh` because Nix caches the resolved revision for an hour, and would otherwise rebuild the commit you just replaced.
+
+`system.autoUpgrade` runs the same thing nightly, and passes `--refresh` on its own.
