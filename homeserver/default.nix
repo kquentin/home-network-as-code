@@ -85,7 +85,7 @@
     environmentFile = "/var/lib/secrets/vaultwarden.env";
 
     config = {
-      DOMAIN = "https://homeserver.CHANGEME.ts.net";
+      DOMAIN = "https://homeserver.tail289b49.ts.net";
 
       ROCKET_ADDRESS = "127.0.0.1";
       ROCKET_PORT = 8222;
