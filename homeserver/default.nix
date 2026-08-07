@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   imports = [
@@ -75,6 +75,26 @@
     ];
   };
 
+  systemd.services.tailscale-serve = {
+    after = [
+      "tailscaled.service"
+      "tailscaled-set.service"
+    ];
+    wants = [ "tailscaled.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    serviceConfig.Type = "oneshot";
+
+    script =
+      let
+        tailscale = "${config.services.tailscale.package}/bin/tailscale";
+      in
+      ''
+        ${tailscale} serve reset
+        ${tailscale} serve --bg --https=8443 8222
+      '';
+  };
+
   services.vaultwarden = {
     enable = true;
 
@@ -83,7 +103,7 @@
     environmentFile = "/var/lib/secrets/vaultwarden.env";
 
     config = {
-      DOMAIN = "https://homeserver.tail289b49.ts.net";
+      DOMAIN = "https://homeserver.tail289b49.ts.net:8443";
 
       ROCKET_ADDRESS = "127.0.0.1";
       ROCKET_PORT = 8222;
