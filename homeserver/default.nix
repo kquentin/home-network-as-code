@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   imports = [
@@ -92,6 +92,7 @@
       ''
         ${tailscale} serve reset
         ${tailscale} serve --bg --https=8443 8222
+        ${tailscale} serve --bg --https=8444 5000
       '';
   };
 
@@ -113,13 +114,32 @@
     };
   };
 
+  nixpkgs.config.allowUnfreePredicate =
+    pkg: builtins.elem (lib.getName pkg) [ "changedetection-io" ];
+
+  services.changedetection-io = {
+    enable = true;
+
+    listenAddress = "127.0.0.1";
+    port = 5000;
+    behindProxy = true;
+    baseURL = "https://homeserver.tail289b49.ts.net:8444";
+
+    # Both fetchers pull Chromium; off saves its RAM, at the cost of JS-rendered pages.
+    webDriverSupport = false;
+    playwrightSupport = false;
+  };
+
   services.restic.backups.vaultwarden = {
     initialize = true;
 
     passwordFile = "/var/lib/secrets/restic-password";
     environmentFile = "/var/lib/secrets/restic-s3.env";
 
-    paths = [ "/var/backup/vaultwarden" ];
+    paths = [
+      "/var/backup/vaultwarden"
+      "/var/lib/changedetection-io"
+    ];
 
     timerConfig = null;
 
