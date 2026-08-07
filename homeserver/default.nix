@@ -90,8 +90,8 @@
       ROCKET_ADDRESS = "127.0.0.1";
       ROCKET_PORT = 8222;
 
-      # Set to false and redeploy once your account exists.
-      SIGNUPS_ALLOWED = true;
+      # The account exists. Nobody on the tailnet needs to create another.
+      SIGNUPS_ALLOWED = false;
     };
   };
 
