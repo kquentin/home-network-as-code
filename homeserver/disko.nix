@@ -1,5 +1,5 @@
 # No swap partition: on 16GB it would cost ~12% of the disk.
-# zramSwap covers it instead (see homeserver.nix).
+# zramSwap covers it instead (see ./default.nix).
 
 {
   disko.devices.disk.main = {
