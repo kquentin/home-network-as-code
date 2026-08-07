@@ -56,9 +56,7 @@
     };
   };
 
-  users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPkjDD9+nKBBoYhZrZPmAq1hKB9G5JMvxdiVedXZGylS kollaros.quentin@mailfence.com"
-  ];
+  users.users.root.openssh.authorizedKeys.keyFiles = [ ../keys/admin.pub ];
 
   environment.systemPackages = with pkgs; [
     restic

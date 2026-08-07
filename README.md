@@ -20,6 +20,7 @@ Remote access goes through Tailscale on the homeserver, which advertises both in
 | `homeserver/` | the always-on server |
 | `lab/` | the Kubernetes cluster |
 | `netboot/` | a NixOS installer served over the network, to provision a bare machine |
+| `keys/` | the SSH public keys admitted on every host |
 
 ## Secrets
 
