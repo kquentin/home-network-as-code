@@ -96,8 +96,6 @@
   services.restic.backups.vaultwarden = {
     initialize = true;
 
-    repository = "s3:https://s3.eu-central-003.backblazeb2.com/backup-07f159cc7c/homeserver";
-
     passwordFile = "/var/lib/secrets/restic-password";
     environmentFile = "/var/lib/secrets/restic-s3.env";
 

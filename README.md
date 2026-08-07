@@ -30,7 +30,7 @@ The credentials live on the machine and have to exist before the services that r
 |---|---|---|
 | `/var/lib/secrets/vaultwarden.env` | `services.vaultwarden.environmentFile` | `ADMIN_TOKEN`, and any other setting not fit for the store |
 | `/var/lib/secrets/restic-password` | `services.restic.backups.vaultwarden.passwordFile` | the passphrase the repository was initialised with |
-| `/var/lib/secrets/restic-s3.env` | `services.restic.backups.vaultwarden.environmentFile` | `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for Backblaze B2 |
+| `/var/lib/secrets/restic-s3.env` | `services.restic.backups.vaultwarden.environmentFile` | `RESTIC_REPOSITORY`, plus `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for Backblaze B2 |
 
 All three are `0600 root:root`.
 Keep `restic-password` somewhere else too: restic cannot recover a repository without it, so losing it loses every backup.
