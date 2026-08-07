@@ -1,0 +1,9 @@
+secrets/
+*.env
+*-authkey
+restic-password
+result*
+
+# Fichiers d'échange des éditeurs
+*.sw[po]
+*~

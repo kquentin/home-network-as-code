@@ -1,0 +1,16 @@
+#!ipxe
+# Embedded in the iPXE binary served over TFTP by outpost.
+
+:start
+dhcp || goto retry
+chain --autofree http://10.10.10.1:8080/netboot.ipxe || goto failed
+
+:retry
+echo DHCP failed, retrying in 5s
+sleep 5
+goto start
+
+:failed
+echo Could not load http://10.10.10.1:8080/netboot.ipxe
+echo Dropping to the iPXE shell.
+shell
