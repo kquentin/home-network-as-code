@@ -1,7 +1,8 @@
 # homelab
 
 A home network segmented into VLANs on an OpenWrt router, with a NixOS server and a Kubernetes lab behind it. 
-Every machine is described here and rebuilds itself from this repository.
+Every machine is described here and rebuilds itself from this repository. 
+The homeserver and every node of the cluster are HP t620 thin clients.
 
 ## Network
 

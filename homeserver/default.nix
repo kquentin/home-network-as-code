@@ -6,15 +6,8 @@
     ./hardware-configuration.nix
   ];
 
-  # The machine rebuilds itself from this flake, so it must be able to read one.
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
-
   # Hardware comes from hardware-configuration.nix, generated on the machine.
-  # No linux-firmware either: 770 MB of the 15 GB disk.
-  # Microcode is the part worth keeping, since it carries the Spectre-class mitigations.
+  # Microcode is enabled on its own, since it carries the Spectre-class mitigations.
   hardware.cpu.amd.updateMicrocode = true;
 
   boot.loader.grub = {
@@ -24,15 +17,9 @@
   };
   boot.tmp.cleanOnBoot = true;
 
+  networking.hostName = "homeserver";
   time.timeZone = "Europe/Paris";
   system.stateVersion = "26.05";
-
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 14d";
-  };
-  nix.optimise.automatic = true;
 
   documentation.nixos.enable = false;
   documentation.doc.enable = false;
@@ -41,7 +28,30 @@
 
   services.journald.extraConfig = "SystemMaxUse=200M";
 
-  networking.hostName = "homeserver";
+  # The machine rebuilds itself from this flake, so it must be able to read one.
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";
+  };
+  nix.optimise.automatic = true;
+
+  system.autoUpgrade = {
+    enable = true;
+    flake = "github:kquentin/homelab#homeserver";
+    allowReboot = true;
+    rebootWindow = {
+      lower = "04:00";
+      upper = "07:00";
+    };
+    runGarbageCollection = true;
+  };
+
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 ];
@@ -153,16 +163,5 @@
   };
 
   systemd.services.backup-vaultwarden.onSuccess = [ "restic-backups-vaultwarden.service" ];
-
-  system.autoUpgrade = {
-    enable = true;
-    flake = "github:kquentin/homelab#homeserver";
-    allowReboot = true;
-    rebootWindow = {
-      lower = "04:00";
-      upper = "07:00";
-    };
-    runGarbageCollection = true;
-  };
 
 }
