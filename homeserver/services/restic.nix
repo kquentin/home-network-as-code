@@ -1,13 +1,23 @@
 { config, lib, pkgs, ... }:
 
 {
+  sops.secrets.restic-password = { };
+  sops.secrets.restic-repository = { };
+  sops.secrets.restic-b2-key-id = { };
+  sops.secrets.restic-b2-key = { };
+
+  # The repository URL is a secret like the rest: it names the bucket.
+  sops.templates.restic-env.content = ''
+    RESTIC_REPOSITORY=${config.sops.placeholder.restic-repository}
+    AWS_ACCESS_KEY_ID=${config.sops.placeholder.restic-b2-key-id}
+    AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.restic-b2-key}
+  '';
+
   services.restic.backups.homeserver = {
     initialize = true;
 
-    passwordFile = "/var/lib/secrets/restic-password";
-
-    # Also carries RESTIC_REPOSITORY, so the bucket name never reaches the store.
-    environmentFile = "/var/lib/secrets/restic-s3.env";
+    passwordFile = config.sops.secrets.restic-password.path;
+    environmentFile = config.sops.templates.restic-env.path;
 
     paths = config.homenet.backup.paths;
 

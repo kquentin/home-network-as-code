@@ -8,10 +8,15 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    { nixpkgs, disko, ... }:
+    { nixpkgs, disko, sops-nix, ... }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -28,6 +33,7 @@
       nixosConfigurations = {
         homeserver = host [
           disko.nixosModules.disko
+          sops-nix.nixosModules.sops
 
           ./homeserver
         ];

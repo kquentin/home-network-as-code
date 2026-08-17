@@ -15,6 +15,14 @@
   time.timeZone = "Europe/Paris";
   system.stateVersion = "26.05";
 
+  # Decrypted at activation with an age key derived from the host's SSH key, into
+  # /run/secrets. Nothing here is placed by hand, and nothing survives a reboot.
+  sops.defaultSopsFile = ../secrets/homeserver.yaml;
+
+  # age only. Left alone, activation would also derive a GnuPG key from the RSA
+  # host key and import it, for nothing.
+  sops.gnupg.sshKeyPaths = [ ];
+
   # Enabled on its own rather than through enableRedistributableFirmware
   hardware.cpu.amd.updateMicrocode = true;
 

@@ -1,12 +1,18 @@
 { config, pkgs, ... }:
 
 {
+  sops.secrets.vaultwarden-admin-token = { };
+
+  sops.templates.vaultwarden-env.content = ''
+    ADMIN_TOKEN=${config.sops.placeholder.vaultwarden-admin-token}
+  '';
+
   services.vaultwarden = {
     enable = true;
 
     backupDir = "/var/backup/vaultwarden";
 
-    environmentFile = "/var/lib/secrets/vaultwarden.env";
+    environmentFile = config.sops.templates.vaultwarden-env.path;
 
     config = {
       DOMAIN = "https://homeserver.tail289b49.ts.net:8443";
