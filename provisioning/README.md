@@ -12,6 +12,20 @@ In both cases the installer only makes the machine reachable over SSH. What
 turns it into a host comes after: `nixos-anywhere` for the server, Ansible for
 the lab nodes.
 
+## The host key comes first
+
+A machine cannot be given secrets it has no key to read, and its key does not
+exist until it is installed. So the key is made beforehand and carried in:
+
+```sh
+./host-key.sh homeserver
+```
+
+It writes `~/homeserver-secrets/etc/ssh/ssh_host_ed25519_key` — an `--extra-files`
+tree mirroring the target root — and prints the age recipient to put in
+`.sops.yaml`. That one key is the whole chain: sshd's identity, and, converted,
+what decrypts `secrets/homeserver.yaml` at every boot.
+
 ## NixOS
 
 Build the artefacts and stage them on the router. From the root of the
