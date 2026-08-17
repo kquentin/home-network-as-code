@@ -1,13 +1,21 @@
-{ config, lib, pkgs, ... }:
+{ ... }:
 
 {
   imports = [
+    ../modules/homenet.nix
+
     ./disko.nix
+    ./services/restic.nix
+    ./services/vaultwarden.nix
     ./hardware-configuration.nix
+    ./services/changedetection.nix
   ];
 
-  # Hardware comes from hardware-configuration.nix, generated on the machine.
-  # Microcode is enabled on its own, since it carries the Spectre-class mitigations.
+  networking.hostName = "homeserver";
+  time.timeZone = "Europe/Paris";
+  system.stateVersion = "26.05";
+
+  # Enabled on its own rather than through enableRedistributableFirmware
   hardware.cpu.amd.updateMicrocode = true;
 
   boot.loader.grub = {
@@ -17,22 +25,9 @@
   };
   boot.tmp.cleanOnBoot = true;
 
-  networking.hostName = "homeserver";
-  time.timeZone = "Europe/Paris";
-  system.stateVersion = "26.05";
-
-  documentation.nixos.enable = false;
-  documentation.doc.enable = false;
-
   zramSwap.enable = true;
 
   services.journald.extraConfig = "SystemMaxUse=200M";
-
-  # The machine rebuilds itself from this flake, so it must be able to read one.
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
 
   nix.gc = {
     automatic = true;
@@ -43,7 +38,7 @@
 
   system.autoUpgrade = {
     enable = true;
-    flake = "github:kquentin/homelab#homeserver";
+    flake = "github:kquentin/home-network-as-code#homeserver";
     allowReboot = true;
     rebootWindow = {
       lower = "04:00";
@@ -52,31 +47,18 @@
     runGarbageCollection = true;
   };
 
+  # Services bind to 127.0.0.1 and are reached through homenet.serve.
+  # Nothing but SSH needs a port open on the LAN.
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 ];
     trustedInterfaces = [ "tailscale0" ];
   };
 
-  services.openssh = {
-    enable = true;
-    settings = {
-      PasswordAuthentication = false;
-      PermitRootLogin = "prohibit-password";
-    };
-  };
-
-  users.users.root.openssh.authorizedKeys.keyFiles = [ ../keys/admin.pub ];
-
-  environment.systemPackages = with pkgs; [
-    restic
-    sqlite
-  ];
-
   services.tailscale = {
     enable = true;
     openFirewall = true;
-    # Enables net.ipv4.ip_forward without it packets for the lab are dropped.
+    # Enables net.ipv4.ip_forward, without it packets for the lab are dropped.
     # --accept-dns=false keeps the router's resolver, adblock and DoH included.
     useRoutingFeatures = "server";
     extraSetFlags = [
@@ -84,84 +66,4 @@
       "--accept-dns=false"
     ];
   };
-
-  systemd.services.tailscale-serve = {
-    after = [
-      "tailscaled.service"
-      "tailscaled-set.service"
-    ];
-    wants = [ "tailscaled.service" ];
-    wantedBy = [ "multi-user.target" ];
-
-    serviceConfig.Type = "oneshot";
-
-    script =
-      let
-        tailscale = "${config.services.tailscale.package}/bin/tailscale";
-      in
-      ''
-        ${tailscale} serve reset
-        ${tailscale} serve --bg --https=8443 8222
-        ${tailscale} serve --bg --https=8444 5000
-      '';
-  };
-
-  services.vaultwarden = {
-    enable = true;
-
-    backupDir = "/var/backup/vaultwarden";
-
-    environmentFile = "/var/lib/secrets/vaultwarden.env";
-
-    config = {
-      DOMAIN = "https://homeserver.tail289b49.ts.net:8443";
-
-      ROCKET_ADDRESS = "127.0.0.1";
-      ROCKET_PORT = 8222;
-
-      # The account exists. Nobody on the tailnet needs to create another.
-      SIGNUPS_ALLOWED = false;
-    };
-  };
-
-  nixpkgs.config.allowUnfreePredicate =
-    pkg: builtins.elem (lib.getName pkg) [ "changedetection-io" ];
-
-  services.changedetection-io = {
-    enable = true;
-
-    listenAddress = "127.0.0.1";
-    port = 5000;
-    behindProxy = true;
-    baseURL = "https://homeserver.tail289b49.ts.net:8444";
-
-    # Both fetchers pull Chromium; off saves its RAM, at the cost of JS-rendered pages.
-    webDriverSupport = false;
-    playwrightSupport = false;
-  };
-
-  services.restic.backups.vaultwarden = {
-    initialize = true;
-
-    passwordFile = "/var/lib/secrets/restic-password";
-    environmentFile = "/var/lib/secrets/restic-s3.env";
-
-    paths = [
-      "/var/backup/vaultwarden"
-      "/var/lib/changedetection-io"
-    ];
-
-    timerConfig = null;
-
-    pruneOpts = [
-      "--keep-daily 7"
-      "--keep-weekly 5"
-      "--keep-monthly 12"
-    ];
-
-    checkOpts = [ "--read-data-subset=10%" ];
-  };
-
-  systemd.services.backup-vaultwarden.onSuccess = [ "restic-backups-vaultwarden.service" ];
-
 }

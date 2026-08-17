@@ -1,5 +1,5 @@
 {
-  description = "homelab";
+  description = "Home network as code: OpenWrt router, NixOS server, Kubernetes lab";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
@@ -12,28 +12,33 @@
 
   outputs =
     { nixpkgs, disko, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+
+      # Only the NixOS machines. The router runs OpenWrt, the lab nodes Debian.
+      host =
+        modules:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = [ ./modules/base.nix ] ++ modules;
+        };
+    in
     {
-      nixosConfigurations.homeserver = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
+      nixosConfigurations = {
+        homeserver = host [
           disko.nixosModules.disko
+
           ./homeserver
         ];
+
+        netboot = host [ ./provisioning/nixos ];
       };
 
-      # Installer booted over the network into RAM. 
-      # Produces the kernel, the initrd and an iPXE script under config.system.build.
-      nixosConfigurations.netboot = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [ ./netboot/netboot.nix ];
-      };
+      # A stock iPXE would ask DHCP for a boot file again and be handed this very
+      # binary, forever. The embedded script is what breaks the loop.
+      packages.${system}.ipxe = pkgs.ipxe.override { embedScript = ./provisioning/boot.ipxe; };
 
-      # Chains straight to the router's HTTP server. 
-      # A stock iPXE would ask DHCP for a boot file again and be handed this very binary, forever.
-      packages.x86_64-linux.ipxe =
-        nixpkgs.legacyPackages.x86_64-linux.ipxe.override
-          {
-            embedScript = ./netboot/boot.ipxe;
-          };
+      formatter.${system} = pkgs.nixfmt;
     };
 }
