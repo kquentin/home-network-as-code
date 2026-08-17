@@ -1,7 +1,7 @@
 keys:
   # Converted from the machine's SSH host key, so the server decrypts at boot
   # without holding any key of its own.
-  - &homeserver age12dnht8m3h9qty6wv233v4ta3h89lc3x38g6sh4c4h89c8849nshq5zzjqm
+  - &homeserver age12g5dhyqk76demf3ue6f0a7qsqe7qg447ttq7jl7z36usauv9uatqrrrr80
   - &admin age14gu0h4zkte5c6s5hjhufazm2hdsjxdk9y2gadwg3lgxk4h2htucq3ys6s7
 
 creation_rules:
