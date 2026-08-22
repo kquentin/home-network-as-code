@@ -3,14 +3,28 @@
 
 :start
 dhcp || goto retry
+
+:main
+iseq ${gateway} 10.10.10.1 || goto lab
 chain --autofree http://10.10.10.1:8080/netboot.ipxe || goto failed
+
+:lab
+iseq ${gateway} 10.10.30.1 || goto unknown
+chain --autofree http://10.10.30.1:8080/debian.ipxe || goto failed
 
 :retry
 echo DHCP failed, retrying in 5s
 sleep 5
 goto start
 
+:unknown
+echo No installer for gateway ${gateway}
+goto shell
+
 :failed
-echo Could not load http://10.10.10.1:8080/netboot.ipxe
+echo Could not load the installer for gateway ${gateway}
+goto shell
+
+:shell
 echo Dropping to the iPXE shell.
 shell
