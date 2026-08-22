@@ -7,8 +7,8 @@ An OpenWrt router, `outpost`, cuts the house into VLANs and serves the netboot.
 
 | | Runs | |
 |---|---|---|
-| [`homeserver/`](homeserver/) | NixOS | Vaultwarden, changedetection-io |
-| [`lab/`](lab/) | Debian + Kubernetes | not yet built |
+| [`targets/homeserver/`](targets/homeserver/) | NixOS | Vaultwarden, changedetection-io |
+| [`targets/lab/`](targets/lab/) | Debian + Kubernetes | not yet built |
 | [`provisioning/`](provisioning/) | — | how a bare machine becomes one of those |
 
 Every machine is an HP t620 thin client. `main` (10.10.10.0/24) holds the
@@ -25,7 +25,7 @@ Services bind to `127.0.0.1` and are published on the tailnet by `tailscale serv
 - Vaultwarden on `:8443`
 - changedetection-io on `:8444`.
 
-Adding one is a single file under [`homeserver/services/`](homeserver/services/). It declares the service, the port it answers on, and what of it is worth keeping, which restic ships to Backblaze B2.
+Adding one is a single file under [`targets/homeserver/services/`](targets/homeserver/services/). It declares the service, the port it answers on, and what of it is worth keeping, which restic ships to Backblaze B2.
 
 Secrets are committed encrypted with [sops](https://github.com/getsops/sops).
 

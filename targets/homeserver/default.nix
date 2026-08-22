@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ../modules/homenet.nix
+    ../../modules/homenet.nix
 
     ./disko.nix
     ./services/restic.nix
@@ -17,7 +17,7 @@
 
   # Decrypted at activation with an age key derived from the host's SSH key, into
   # /run/secrets. Nothing here is placed by hand, and nothing survives a reboot.
-  sops.defaultSopsFile = ../secrets/homeserver.yaml;
+  sops.defaultSopsFile = ../../secrets/homeserver.yaml;
 
   # age only. Left alone, activation would also derive a GnuPG key from the RSA
   # host key and import it, for nothing.

@@ -35,7 +35,7 @@
         homeserver = host [
           disko.nixosModules.disko
           sops-nix.nixosModules.sops
-          ./homeserver
+          ./targets/homeserver
         ];
 
         netboot = host [ ./provisioning/homeserver/netboot.nix ];
