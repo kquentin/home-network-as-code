@@ -1,9 +1,11 @@
 { config, lib, ... }:
 
 let
-  cfg = config.homenet.serve;
   tailscale = "${config.services.tailscale.package}/bin/tailscale";
-  publish = s: "${tailscale} serve --bg --https=${toString s.https} ${toString s.to}";
+  tailnetHostName = "${config.networking.hostName}.${config.homenet.tailnetDomain}";
+  publish =
+    service:
+    "${tailscale} serve --bg --https=${toString service.tailnetPort} ${toString service.localPort}";
 in
 {
   options.homenet.backup.paths = lib.mkOption {
@@ -22,20 +24,34 @@ in
     '';
   };
 
-  options.homenet.serve = lib.mkOption {
+  options.homenet.tailnetDomain = lib.mkOption {
+    type = lib.types.str;
+    description = ''
+      The tailnet's DNS domain.
+    '';
+  };
+
+  options.homenet.publish = lib.mkOption {
     type = lib.types.attrsOf (
-      lib.types.submodule {
+      lib.types.submodule (service: {
         options = {
-          https = lib.mkOption {
+          tailnetPort = lib.mkOption {
             type = lib.types.port;
-            description = "Port on the tailnet name, HTTPS.";
+            description = "Port the service answers on, under HTTPS, on the tailnet.";
           };
-          to = lib.mkOption {
+
+          localPort = lib.mkOption {
             type = lib.types.port;
-            description = "Port the service listens on, in the clear, on 127.0.0.1.";
+            description = "Port the service itself listens on, in the clear, on 127.0.0.1.";
+          };
+
+          url = lib.mkOption {
+            type = lib.types.str;
+            default = "https://${tailnetHostName}:${toString service.config.tailnetPort}";
+            description = "The address clients use, for services that need to state their own.";
           };
         };
-      }
+      })
     );
     default = { };
     description = ''
@@ -43,8 +59,7 @@ in
     '';
   };
 
-  config = lib.mkIf (cfg != { }) {
-    # `tailscale serve` writes to the daemon's state, it is not declarative.
+  config = lib.mkIf (config.homenet.publish != { }) {
     systemd.services.tailscale-serve = {
       wantedBy = [ "multi-user.target" ];
       wants = [ "tailscaled.service" ];
@@ -57,7 +72,7 @@ in
 
       script = ''
         ${tailscale} serve reset
-        ${lib.concatLines (map publish (lib.attrValues cfg))}
+        ${lib.concatLines (map publish (lib.attrValues config.homenet.publish))}
       '';
     };
   };

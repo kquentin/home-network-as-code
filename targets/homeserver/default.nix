@@ -17,6 +17,8 @@
   time.timeZone = "Europe/Paris";
   system.stateVersion = "26.05";
 
+  homenet.tailnetDomain = "tail289b49.ts.net";
+
   sops.defaultSopsFile = ../../secrets/homeserver.yaml;
 
   # Not empty by default. The default is [ /etc/ssh/ssh_host_rsa_key ].

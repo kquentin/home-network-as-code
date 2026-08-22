@@ -1,7 +1,8 @@
 { config, lib, ... }:
 
 {
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "changedetection-io" ];
+  nixpkgs.config.allowUnfreePredicate =
+    package: builtins.elem (lib.getName package) [ "changedetection-io" ];
 
   services.changedetection-io = {
     enable = true;
@@ -9,16 +10,17 @@
     listenAddress = "127.0.0.1";
     port = 5000;
     behindProxy = true;
-    baseURL = "https://homeserver.tail289b49.ts.net:8444";
+    baseURL = config.homenet.publish.changedetection.url;
 
-    # Both fetchers pull Chromium; off saves its RAM, at the cost of JS-rendered pages.
+    # Both fetchers pull Chromium.
+    # Set them on false saves RAM, at the cost of JS-rendered pages.
     webDriverSupport = false;
     playwrightSupport = false;
   };
 
-  homenet.serve.changedetection = {
-    https = 8444;
-    to = config.services.changedetection-io.port;
+  homenet.publish.changedetection = {
+    tailnetPort = 8444;
+    localPort = config.services.changedetection-io.port;
   };
 
   homenet.backup.paths = [ "/var/lib/changedetection-io" ];
