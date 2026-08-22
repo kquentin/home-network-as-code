@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Give a machine its identity before it exists.
-# Then print the age recipient it converts to.
+# Give a machine its identity and print the age recipient.
 
 set -euo pipefail
 
 host=${1}
-destination=${HOME}/${host}-secrets/etc/ssh
+destination=${HOME}/homenet-keys/${host}/etc/ssh
 
 mkdir -p "${destination}"
 ssh-keygen -q -t ed25519 -N "" -C "${host}" -f "${destination}/ssh_host_ed25519_key"
