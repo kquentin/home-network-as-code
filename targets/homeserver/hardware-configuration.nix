@@ -1,19 +1,18 @@
-# Generated on the machine, not edited by hand:
-#   nixos-generate-config --show-hardware-config --no-filesystems
-# --no-filesystems because ./disko.nix already declares them.
+# From nixos-generate-config
 
-{ config, lib, pkgs, modulesPath, ... }:
+{ lib, modulesPath, ... }:
 
 {
-  imports =
-    [ (modulesPath + "/installer/scan/not-detected.nix")
-    ];
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "ohci_pci" "ehci_pci" "usbhid" "sd_mod" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ ];
-  boot.extraModulePackages = [ ];
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "ahci"
+    "ohci_pci"
+    "ehci_pci"
+    "usbhid"
+    "sd_mod"
+  ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }

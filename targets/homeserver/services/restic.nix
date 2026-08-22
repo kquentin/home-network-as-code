@@ -6,7 +6,6 @@
   sops.secrets.restic-b2-key-id = { };
   sops.secrets.restic-b2-key = { };
 
-  # The repository URL is a secret like the rest: it names the bucket.
   sops.templates.restic-env.content = ''
     RESTIC_REPOSITORY=${config.sops.placeholder.restic-repository}
     AWS_ACCESS_KEY_ID=${config.sops.placeholder.restic-b2-key-id}
@@ -21,10 +20,9 @@
 
     paths = config.homenet.backup.paths;
 
+    # No timer of its own, the run is chained onto homenet.backup.triggeredBy.
     timerConfig = null;
 
-    # Retention covers every snapshot of this host at once. The default also
-    # groups by path list, so adding a directory would start a second history.
     pruneOpts = [
       "--group-by host"
       "--keep-daily 7"

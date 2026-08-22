@@ -1,5 +1,7 @@
-# No swap partition: on 16GB it would cost ~12% of the disk.
-# zramSwap covers it instead (see ./default.nix).
+# No swap partition on a 16GB disk, it would cost ~12% of it.
+# zramSwap, below, stands in for it.
+
+{ config, ... }:
 
 {
   disko.devices.disk.main = {
@@ -12,7 +14,7 @@
       partitions = [
         {
           name = "root";
-          # The 1 MiB left free before the partition is where grub-install embeds core.img on an MBR disk. 
+          # The 1 MiB left free is where grub-install embeds core.img on an MBR disk.
           start = "1MiB";
           end = "100%";
           bootable = true;
@@ -25,4 +27,12 @@
       ];
     };
   };
+
+  boot.loader.grub = {
+    enable = true;
+    devices = [ config.disko.devices.disk.main.device ];
+    configurationLimit = 5;
+  };
+
+  zramSwap.enable = true;
 }
