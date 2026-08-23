@@ -1,20 +1,14 @@
 # home network as code
 
-The house's network described in this repository: an always-on NixOS server, and
-a Kubernetes lab on Debian.
-
-An OpenWrt router, `outpost`, cuts the house into VLANs and serves the netboot.
+The home network runs an always-on NixOS server and a Kubernetes lab on Debian, both behind an OpenWrt router, `outpost`, which segments the house into VLANs and serves netboot.
 
 | | Runs | |
 |---|---|---|
 | [`targets/homeserver/`](targets/homeserver/) | NixOS | Vaultwarden, changedetection-io |
-| [`targets/lab/`](targets/lab/) | Debian + Kubernetes | not yet built |
-| [`provisioning/`](provisioning/) | — | how a bare machine becomes one of those |
+| [`targets/lab/`](targets/lab/) | Debian + Kubernetes | a kubeadm cluster, configured with Ansible |
+| [`provisioning/`](provisioning/) | - | how a bare machine becomes one of those |
 
-Every machine is an HP t620 thin client. `main` (10.10.10.0/24) holds the
-workstations and the server, `lab` (10.10.30.0/24) the cluster nodes.
-
-Remote access enters through Tailscale on the server.
+Every machine except the `outpost` is an HP T620 thin client. `main` (10.10.10.0/24) holds the workstations and the server, `lab` (10.10.30.0/24) the cluster nodes. Remote access enters through Tailscale on the server.
 
 ## The server
 
