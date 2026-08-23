@@ -1,4 +1,4 @@
-# No swap partition on a 16GB disk, it would cost ~12% of it.
+# no swap partition on a 16GB disk, it would cost ~12% of it.
 # zramSwap, below, stands in for it.
 
 { config, ... }:
@@ -14,7 +14,7 @@
       partitions = [
         {
           name = "root";
-          # The 1 MiB left free is where grub-install embeds core.img on an MBR disk.
+          # the 1 MiB left free is where grub-install embeds core.img on an MBR disk.
           start = "1MiB";
           end = "100%";
           bootable = true;

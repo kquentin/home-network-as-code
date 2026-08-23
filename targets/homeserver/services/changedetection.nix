@@ -12,8 +12,8 @@
     behindProxy = true;
     baseURL = config.homenet.publish.changedetection.url;
 
-    # Both fetchers pull Chromium.
-    # Set them on false saves RAM, at the cost of JS-rendered pages.
+    # both fetchers pull Chromium.
+    # set them on false saves RAM, at the cost of JS-rendered pages.
     webDriverSupport = false;
     playwrightSupport = false;
   };

@@ -21,12 +21,12 @@
 
   sops.defaultSopsFile = ../../secrets/homeserver.yaml;
 
-  # Not empty by default. The default is [ /etc/ssh/ssh_host_rsa_key ].
-  # Activation would derive a PGP key from the RSA host key, for nothing.
-  # This repository's secrets have age recipients only.
+  # not empty by default. The default is [ /etc/ssh/ssh_host_rsa_key ].
+  # activation would derive a PGP key from the RSA host key, for nothing.
+  # this repository's secrets have age recipients only.
   sops.gnupg.sshKeyPaths = [ ];
 
   # enableRedistributableFirmware would pull every redistributable blob.
-  # For hardware this machine does not have.
+  # for hardware this machine does not have.
   hardware.cpu.amd.updateMicrocode = true;
 }

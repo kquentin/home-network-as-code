@@ -20,7 +20,7 @@
 
     paths = config.homenet.backup.paths;
 
-    # No timer of its own, the run is chained onto homenet.backup.triggeredBy.
+    # no timer of its own, the run is chained onto homenet.backup.triggeredBy.
     timerConfig = null;
 
     pruneOpts = [

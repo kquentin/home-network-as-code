@@ -20,7 +20,7 @@
       ROCKET_ADDRESS = "127.0.0.1";
       ROCKET_PORT = 8222;
 
-      # The account already exists, nobody needs another.
+      # the account already exists, nobody needs another.
       SIGNUPS_ALLOWED = false;
     };
   };

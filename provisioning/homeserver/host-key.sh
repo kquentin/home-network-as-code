@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Give a machine its identity and print the age recipient.
+# give a machine its identity and print the age recipient.
 
 set -euo pipefail
 

@@ -1,4 +1,4 @@
-# From nixos-generate-config
+# from nixos-generate-config
 
 { lib, modulesPath, ... }:
 
