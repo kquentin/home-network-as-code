@@ -6,7 +6,7 @@ How a machine with nothing on it becomes one of the hosts ?
 |---|---|
 | [`boot.ipxe`](boot.ipxe) | what a machine booting from the network runs |
 | [`homeserver/`](homeserver/) | the key it has to be given before it exists |
-| [`lab/`](lab/) | the Debian installer, not written yet |
+| [`lab/`](lab/) | the preseed the three lab machines install from |
 
 `boot.ipxe` tells the VLANs apart.
 
@@ -33,6 +33,7 @@ The same file, [`keys/admin.pub`](../keys/admin.pub), copied two different ways.
 | | reads it | gets it from |
 |---|---|---|
 | NixOS | the installer, so `nixos-anywhere` can connect | GitHub, injected into the initramfs by `boot.ipxe` |
+| Debian | the installed system, on the preseed's last line | the router, over HTTP |
 
 ## NixOS
 
@@ -47,4 +48,12 @@ A bare machine has no SSH to jump from, so it boots from the network first: `F12
 
 ## Debian
 
-Nothing serves it yet.
+One preseed installs the three lab machines.
+
+They have to be set to boot in legacy BIOS. The recipe lays down a single MBR partition, and no swap, which the kubelet refuses to start beside.
+
+```sh
+scp -O provisioning/lab/preseed.cfg keys/admin.pub root@outpost:/tmp/netboot/
+```
+
+Then, one machine at a time: `F12`. [`targets/lab/`](../targets/lab/) takes over.
