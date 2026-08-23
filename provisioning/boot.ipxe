@@ -15,7 +15,9 @@ goto failed
 
 :lab
 set installer http://deb.debian.org/debian/dists/trixie/main/installer-amd64/current/images/netboot/debian-installer/amd64
-kernel ${installer}/linux auto=true priority=critical interface=auto url=http://10.10.30.1:8080/preseed.cfg || goto failed
+# load_firmware is set here and not in the preseed. ethdetect runs before the network exists.
+# so before the preseed can be fetched, and fails hunting for an r8169 firmware the card does not need.
+kernel ${installer}/linux auto=true priority=critical interface=auto hw-detect/load_firmware=false url=http://10.10.30.1:8080/preseed.cfg || goto failed
 initrd ${installer}/initrd.gz || goto failed
 boot || goto failed
 goto failed
