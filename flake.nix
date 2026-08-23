@@ -33,7 +33,13 @@
       };
 
       # handed to every machine that boots from the network.
-      packages.${system}.ipxe = pkgs.ipxe.override { embedScript = ./provisioning/boot.ipxe; };
+      # only the BIOS binary: every machine here boots grub off an MBR disk.
+      packages.${system}.ipxe = pkgs.ipxe.override {
+        embedScript = ./provisioning/boot.ipxe;
+        enableDefaultPlatformTargets = false;
+        additionalTargets."bin/undionly.kpxe" = null;
+        firmwareBinary = "undionly.kpxe";
+      };
 
       formatter.${system} = pkgs.nixfmt;
     };

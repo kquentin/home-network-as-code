@@ -12,6 +12,19 @@ How a machine with nothing on it becomes one of the hosts ?
 
 Nothing to choose at boot, no list of MAC addresses to keep.
 
+Every machine boots in legacy BIOS, `F10` to set it. That is the only iPXE binary built, and the only boot file the router hands out.
+
+## What the router serves
+
+The script lives inside the binary, so the two are rebuilt and recopied together:
+
+```sh
+nix build .#ipxe
+cat result/undionly.kpxe | ssh root@outpost 'cat > /srv/tftp/boot.kpxe'
+```
+
+`dhcp-boot` hands that file to whoever announces client architecture 0.
+
 ## The host key comes first
 
 A machine cannot be given secrets it has no key to read, and its key does not exist until it is installed.
@@ -44,16 +57,14 @@ nix run github:nix-community/nixos-anywhere -- \
 
 The same command whether the machine already runs Linux or not. `nixos-anywhere` uploads a kexec image over the SSH connection it has and jumps into it.
 
-A bare machine has no SSH to jump from, so it boots from the network first: `F12`, and nothing to build or stage. `boot.ipxe` boots the generic installer and hands it [`keys/admin.pub`](../keys/admin.pub) as a second initrd, which iPXE assembles out of that one file.
+A bare machine has no SSH to jump from, so it boots from the network first: `F12`. `boot.ipxe` boots the generic installer and hands it [`keys/admin.pub`](../keys/admin.pub) as a second initrd, which iPXE assembles out of that one file.
 
 ## Debian
 
 One preseed installs the three lab machines.
 
-They have to be set to boot in legacy BIOS. The recipe lays down a single MBR partition, and no swap, which the kubelet refuses to start beside.
+The recipe lays down a single MBR partition, and no swap, which the kubelet refuses to start beside.
 
 ```sh
-scp -O provisioning/lab/preseed.cfg keys/admin.pub root@outpost:/tmp/netboot/
+scp -O provisioning/lab/preseed.cfg keys/admin.pub root@outpost:/srv/netboot/
 ```
-
-Then, one machine at a time: `F12`. [`targets/lab/`](../targets/lab/) takes over.
