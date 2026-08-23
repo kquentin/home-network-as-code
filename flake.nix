@@ -41,6 +41,11 @@
         firmwareBinary = "undionly.kpxe";
       };
 
+      # ansible configures the lab.
+      devShells.${system}.default = pkgs.mkShell {
+        packages = [ pkgs.ansible ];
+      };
+
       formatter.${system} = pkgs.nixfmt;
     };
 }
