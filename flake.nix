@@ -20,29 +20,19 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-
-      host =
-        modules:
-        nixpkgs.lib.nixosSystem {
-          inherit system;
-          modules = [ ./modules/base.nix ] ++ modules;
-        };
     in
     {
-      # The server and its installer, and nothing else.
-      # The router runs OpenWrt, the lab nodes Debian.
-      nixosConfigurations = {
-        homeserver = host [
+      nixosConfigurations.homeserver = nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          ./modules/base.nix
           disko.nixosModules.disko
           sops-nix.nixosModules.sops
           ./targets/homeserver
         ];
-
-        netboot = host [ ./provisioning/homeserver/netboot.nix ];
       };
 
-      # Handed to every machine that boots from the network.
-      # A stock iPXE would ask DHCP for a boot file again. The embedded script breaks the loop.
+      # handed to every machine that boots from the network.
       packages.${system}.ipxe = pkgs.ipxe.override { embedScript = ./provisioning/boot.ipxe; };
 
       formatter.${system} = pkgs.nixfmt;
