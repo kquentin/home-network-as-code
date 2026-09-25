@@ -86,6 +86,8 @@ in
           locations."/" = {
             proxyPass = "http://127.0.0.1:${toString service.localPort}";
             proxyWebsockets = true;
+            # ntfy streams its messages: buffered, they would wait in nginx.
+            extraConfig = "proxy_buffering off;";
           };
         }
       ) config.homenet.publish;

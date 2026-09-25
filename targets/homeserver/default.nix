@@ -11,6 +11,7 @@
     ./services/vaultwarden.nix
     ./hardware-configuration.nix
     ./services/changedetection.nix
+    ./services/ntfy.nix
   ];
 
   networking.hostName = "homeserver";

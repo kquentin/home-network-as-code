@@ -18,6 +18,7 @@ Services bind to `127.0.0.1` and are published inside the tunnel by nginx, with 
 
 - Vaultwarden on `vaultwarden.home.internal`
 - changedetection-io on `changedetection.home.internal`
+- ntfy on `ntfy.home.internal`, which carries changedetection's notifications
 
 A device reaches them once it is a WireGuard peer and trusts [`keys/certificate-authority.crt`](keys/certificate-authority.crt): [`provisioning/`](provisioning/).
 
