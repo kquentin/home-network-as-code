@@ -5,7 +5,7 @@ How a machine with nothing on it becomes one of the hosts ?
 | | |
 |---|---|
 | [`boot.ipxe`](boot.ipxe) | what a machine booting from the network runs |
-| [`homeserver/`](homeserver/) | the key it has to be given before it exists |
+| [`homeserver/`](homeserver/) | the keys the server and its clients are given |
 | [`lab/`](lab/) | the preseed the three lab machines install from |
 
 `boot.ipxe` tells the VLANs apart.
@@ -35,9 +35,43 @@ So it is made beforehand and carried in:
 ./provisioning/homeserver/host-key.sh homeserver
 ```
 
-That writes an `--extra-files` tree under `~/homenet-keys/<machine>`, mirroring the target root, and prints the age recipient to add to `.sops.yaml`.
+That writes an `--extra-files` tree under `~/homenet-keys/<machine>`, mirroring the target root, and prints the age recipient to add to `.sops.yaml`. The keys live outside this repository on purpose: Nix copies a flake's whole directory into the world-readable store.
 
-The keys live outside this repository on purpose: Nix copies a flake's whole directory into the world-readable store.
+## The certificate
+
+The services present a certificate signed by the house's own authority, limited to `home.internal`:
+
+```sh
+./provisioning/homeserver/certificate-authority.sh home.internal
+```
+
+The first run creates the authority. Every run signs a new certificate, valid 825 days, so the command comes back before that.
+
+Its key goes into sops as `tls-key`, and both certificates into [`keys/`](../keys/):
+
+```sh
+sops set secrets/homeserver.yaml '["tls-key"]' "$(jq -Rs . < ~/homenet-keys/certificate-authority/services.key)"
+cp ~/homenet-keys/certificate-authority/root.crt keys/certificate-authority.crt
+cp ~/homenet-keys/certificate-authority/services.crt keys/services.crt
+```
+
+`certificate-authority.crt` is installed on every device, as a CA certificate. On Android: *Settings → Security → Encryption & credentials → Install a certificate → CA certificate*.
+
+## A new device
+
+Every device that reaches the services is a WireGuard peer:
+
+```sh
+./provisioning/homeserver/wireguard-peer.sh user-1-phone-1 10.100.0.2 <public address>:51820
+```
+
+It writes the device's configuration under `~/homenet-keys/wireguard/` and prints the public key to add to the peers in [`network.nix`](../targets/homeserver/network.nix).
+
+The endpoint is the public address for a device that leaves the house, `10.10.10.10:51820` for one that never does. A phone imports its configuration by QR code:
+
+```sh
+nix shell nixpkgs#qrencode -c qrencode -t ansiutf8 < ~/homenet-keys/wireguard/user-1-phone-1.conf
+```
 
 ## The admin key
 

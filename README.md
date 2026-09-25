@@ -8,16 +8,18 @@ The home network runs an always-on NixOS server and a Kubernetes lab on Debian, 
 | [`targets/lab/`](targets/lab/) | Debian + Kubernetes | a kubeadm cluster, configured with Ansible |
 | [`provisioning/`](provisioning/) | - | how a bare machine becomes one of those |
 
-Every machine except the `outpost` is an HP T620 thin client. `main` (10.10.10.0/24) holds the workstations and the server, `lab` (10.10.30.0/24) the cluster nodes. Remote access enters through Tailscale on the server.
+Every machine except the `outpost` is an HP T620 thin client. `main` (10.10.10.0/24) holds the workstations and the server, `lab` (10.10.30.0/24) the cluster nodes. Remote access enters through WireGuard on the server, and leads to the server alone.
 
 ## The server
 
-Nothing listens on the LAN but SSH.
+Nothing listens on the LAN but SSH and WireGuard.
 
-Services bind to `127.0.0.1` and are published on the tailnet by `tailscale serve`, which terminates TLS on the machine's tailnet name :
+Services bind to `127.0.0.1` and are published inside the tunnel by nginx, with a certificate signed by the house's own authority:
 
-- Vaultwarden on `:8443`
-- changedetection-io on `:8444`.
+- Vaultwarden on `vaultwarden.home.internal`
+- changedetection-io on `changedetection.home.internal`
+
+A device reaches them once it is a WireGuard peer and trusts [`keys/certificate-authority.crt`](keys/certificate-authority.crt): [`provisioning/`](provisioning/).
 
 Adding one is a single file under [`targets/homeserver/services/`](targets/homeserver/services/). It declares the service, the port it answers on, and what of it is worth keeping, which restic ships to Backblaze B2.
 

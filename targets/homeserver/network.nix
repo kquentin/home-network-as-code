@@ -1,24 +1,56 @@
-{ ... }:
+{ config, ... }:
 
+let
+  tunnelAddress = config.homenet.tunnelAddress;
+in
 {
-  # services bind to 127.0.0.1 and are reached through homenet.publish.
-  # none of them needs a port on the LAN.
+  # services answer only inside the tunnel.
+  # the LAN sees SSH and WireGuard, nothing else.
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 ];
-    trustedInterfaces = [ "tailscale0" ];
+    allowedUDPPorts = [ config.networking.wireguard.interfaces.wg0.listenPort ];
+    trustedInterfaces = [ "wg0" ];
   };
 
-  services.tailscale = {
-    enable = true;
-    # openFirewall open UDP 41641 with SSH, the only port on the LAN.
-    openFirewall = true;
-    useRoutingFeatures = "server";
-    extraSetFlags = [
-      # enables net.ipv4.ip_forward, without it packets for the lab are dropped.
-      "--advertise-routes=10.10.10.0/24,10.10.30.0/24"
-      # --accept-dns=false keeps the router's resolver, adblock and DoH included.
-      "--accept-dns=false"
+  sops.secrets.wireguard-private-key = { };
+
+  networking.wireguard.interfaces.wg0 = {
+    ips = [ "${tunnelAddress}/24" ];
+    listenPort = 51820;
+    privateKeyFile = config.sops.secrets.wireguard-private-key.path;
+
+    peers = [
+      {
+        name = "user-1-phone-1";
+        publicKey = "AjHgcbyi3SPEEERNNo2bYw+/j3YdpCU+f9bJIs4L7zA=";
+        allowedIPs = [ "10.100.0.2/32" ];
+      }
+      {
+        name = "user-1-laptop-1";
+        publicKey = "bEOHO2RzEFGb1NgludkPND5cZ+4fVXwJ9hYr+a/DmgM=";
+        allowedIPs = [ "10.100.0.4/32" ];
+      }
     ];
+  };
+
+  services.dnsmasq = {
+    enable = true;
+    # the server keeps resolving through the router, not through itself.
+    resolveLocalQueries = false;
+    settings = {
+      listen-address = tunnelAddress;
+      bind-interfaces = true;
+      address = "/${config.homenet.domain}/${tunnelAddress}";
+      # the router answers the rest, adblock and DoH included.
+      server = [ "10.10.10.1" ];
+      no-resolv = true;
+    };
+  };
+
+  # the tunnel address exists only once the tunnel is up.
+  systemd.services.dnsmasq = {
+    wants = [ "wireguard-wg0.service" ];
+    after = [ "wireguard-wg0.service" ];
   };
 }

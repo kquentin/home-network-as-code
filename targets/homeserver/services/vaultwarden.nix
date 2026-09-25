@@ -26,7 +26,6 @@
   };
 
   homenet.publish.vaultwarden = {
-    tailnetPort = 8443;
     localPort = config.services.vaultwarden.config.ROCKET_PORT;
   };
 

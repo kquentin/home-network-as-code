@@ -19,7 +19,6 @@
   };
 
   homenet.publish.changedetection = {
-    tailnetPort = 8444;
     localPort = config.services.changedetection-io.port;
   };
 

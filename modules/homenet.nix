@@ -1,11 +1,7 @@
 { config, lib, ... }:
 
 let
-  tailscale = "${config.services.tailscale.package}/bin/tailscale";
-  tailnetHostName = "${config.networking.hostName}.${config.homenet.tailnetDomain}";
-  publish =
-    service:
-    "${tailscale} serve --bg --https=${toString service.tailnetPort} ${toString service.localPort}";
+  domain = config.homenet.domain;
 in
 {
   options.homenet.backup.paths = lib.mkOption {
@@ -24,56 +20,81 @@ in
     '';
   };
 
-  options.homenet.tailnetDomain = lib.mkOption {
+  options.homenet.domain = lib.mkOption {
     type = lib.types.str;
     description = ''
-      The tailnet's DNS domain.
+      The domain services are named under, the only one the house's certificate authority can sign.
+    '';
+  };
+
+  options.homenet.tunnelAddress = lib.mkOption {
+    type = lib.types.str;
+    description = ''
+      The server's address inside the WireGuard tunnel, the only one services answer on.
     '';
   };
 
   options.homenet.publish = lib.mkOption {
     type = lib.types.attrsOf (
-      lib.types.submodule (service: {
-        options = {
-          tailnetPort = lib.mkOption {
-            type = lib.types.port;
-            description = "Port the service answers on, under HTTPS, on the tailnet.";
-          };
+      lib.types.submodule (
+        { name, config, ... }: {
+          options = {
+            localPort = lib.mkOption {
+              type = lib.types.port;
+              description = "Port the service itself listens on, in the clear, on 127.0.0.1.";
+            };
 
-          localPort = lib.mkOption {
-            type = lib.types.port;
-            description = "Port the service itself listens on, in the clear, on 127.0.0.1.";
-          };
+            hostName = lib.mkOption {
+              type = lib.types.str;
+              default = "${name}.${domain}";
+              description = "The name the service answers to, inside the tunnel.";
+            };
 
-          url = lib.mkOption {
-            type = lib.types.str;
-            default = "https://${tailnetHostName}:${toString service.config.tailnetPort}";
-            description = "The address clients use, for services that need to state their own.";
+            url = lib.mkOption {
+              type = lib.types.str;
+              default = "https://${config.hostName}";
+              description = "The address clients use, for services that need to state their own.";
+            };
           };
-        };
-      })
+        }
+      )
     );
     default = { };
     description = ''
-      Services published on the tailnet.
+      Services published inside the tunnel.
     '';
   };
 
   config = lib.mkIf (config.homenet.publish != { }) {
-    systemd.services.tailscale-serve = {
-      wantedBy = [ "multi-user.target" ];
-      wants = [ "tailscaled.service" ];
-      after = [
-        "tailscaled.service"
-        "tailscaled-set.service"
-      ];
+    sops.secrets.tls-key = {
+      owner = config.services.nginx.user;
+      restartUnits = [ "nginx.service" ];
+    };
 
-      serviceConfig.Type = "oneshot";
+    services.nginx = {
+      enable = true;
+      recommendedProxySettings = true;
+      recommendedTlsSettings = true;
 
-      script = ''
-        ${tailscale} serve reset
-        ${lib.concatLines (map publish (lib.attrValues config.homenet.publish))}
-      '';
+      virtualHosts = lib.mapAttrs' (
+        _: service:
+        lib.nameValuePair service.hostName {
+          listenAddresses = [ config.homenet.tunnelAddress ];
+          onlySSL = true;
+          sslCertificate = ../keys/services.crt;
+          sslCertificateKey = config.sops.secrets.tls-key.path;
+          locations."/" = {
+            proxyPass = "http://127.0.0.1:${toString service.localPort}";
+            proxyWebsockets = true;
+          };
+        }
+      ) config.homenet.publish;
+    };
+
+    # nginx cannot bind the tunnel address before the tunnel exists.
+    systemd.services.nginx = {
+      wants = [ "wireguard-wg0.service" ];
+      after = [ "wireguard-wg0.service" ];
     };
   };
 }

@@ -17,7 +17,8 @@
   time.timeZone = "Europe/Paris";
   system.stateVersion = "26.05";
 
-  homenet.tailnetDomain = "tail289b49.ts.net";
+  homenet.domain = "home.internal";
+  homenet.tunnelAddress = "10.100.0.1";
 
   sops.defaultSopsFile = ../../secrets/homeserver.yaml;
 
