@@ -12,6 +12,7 @@
     ./hardware-configuration.nix
     ./services/changedetection.nix
     ./services/ntfy.nix
+    ./services/alldebrid-proxy.nix
   ];
 
   networking.hostName = "homeserver";

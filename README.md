@@ -4,7 +4,7 @@ The home network runs an always-on NixOS server and a Kubernetes lab on Debian, 
 
 | | Runs | |
 |---|---|---|
-| [`targets/homeserver/`](targets/homeserver/) | NixOS | Vaultwarden, changedetection-io |
+| [`targets/homeserver/`](targets/homeserver/) | NixOS | Vaultwarden, changedetection-io, ntfy, tinyproxy, restic |
 | [`targets/lab/`](targets/lab/) | Debian + Kubernetes | a kubeadm cluster, configured with Ansible |
 | [`provisioning/`](provisioning/) | - | how a bare machine becomes one of those |
 
@@ -19,6 +19,8 @@ Services bind to `127.0.0.1` and are published inside the tunnel by nginx, with 
 - Vaultwarden on `vaultwarden.home.internal`
 - changedetection-io on `changedetection.home.internal`
 - ntfy on `ntfy.home.internal`, which carries changedetection's notifications
+
+The VPS reaches alldebrid's API through tinyproxy, over a second tunnel, `wg1`, that the server dials out to.
 
 A device reaches them once it is a WireGuard peer and trusts [`keys/certificate-authority.crt`](keys/certificate-authority.crt): [`provisioning/`](provisioning/).
 
